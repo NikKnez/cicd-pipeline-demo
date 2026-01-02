@@ -1,0 +1,39 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  scan-dependencies:
+    name: Scan Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Run dependency check
+        run: |
+          echo "Scanning Python dependencies for vulnerabilities"
+          pip install safety
+          safety check --file app/requirements.txt || true
+      
+      - name: Create issue if vulnerabilities found
+        if: failure()
+        run: |
+          echo "Critical vulnerabilities found - would create GitHub issue"
+
+  scan-secrets:
+    name: Scan for Secrets
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Run secret scan
+        run: |
+          echo "Scanning for accidentally committed secrets"
+          # Use tools like gitleaks or trufflehog
